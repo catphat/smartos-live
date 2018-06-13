@@ -94,11 +94,11 @@ function cleanup_needwork {
 #
 # Upon upgrading to early manifest import code, preserve hashes of system
 # profiles which lived under /var/svc/profile so that svccfg apply would
-# not re-apply the profiles and overwrite user customizations. Simply 
+# not re-apply the profiles and overwrite user customizations. Simply
 # migrate manifestfile and hash values to new property groups named after
 # profiles under /etc/svc/profile. If the profiles don't really exist,
 # svccfg cleanup will remove the property groups in a later step.
-# 
+#
 # Existing generic.xml, inetd_services.xml, and name_service.xml symlinks
 # need to be preserved.
 #
@@ -110,7 +110,7 @@ function preserve_system_profiles {
 	#
 	# If /var is a separate fs, return and let Late Import
 	# preserves the hashes.
-	#	
+	#
 	[ -d "/var/svc/profile" ] || return 1
 
 	#
@@ -204,7 +204,7 @@ function import_manifests {
 
 	rm -f $logf
 
-	if [ "${basedir}" == "/opt/custom/smf" ]; then
+	if [ "${basedir}" == "/opt/custom/smf" ] || [ "${basedir}" == "/system/boot/opt/custom/smf" ]; then
 		# Special case where we will just import from the root, not subdirs
 		nonsite_dirs=${basedir}
 	else
@@ -225,7 +225,7 @@ function import_manifests {
 	#
 	# Upon boot, attempt to move the repository to tmpfs.
 	#
-	if [ -z "$ALT_REPOSITORY" -a -z "$ALT_MFST_DIR" ]; then 
+	if [ -z "$ALT_REPOSITORY" -a -z "$ALT_MFST_DIR" ]; then
 		/usr/sbin/svcadm _smf_repository_switch fast
 	fi
 
@@ -438,7 +438,7 @@ fi
 # SVCCFG_REPOSITORY env, run svccfg import on the given directory, and
 # exit.
 #
-if [ -n "$ALT_REPOSITORY" -a -n "$ALT_MFST_DIR" ]; then 
+if [ -n "$ALT_REPOSITORY" -a -n "$ALT_MFST_DIR" ]; then
 	SVCCFG_REPOSITORY=$ALT_REPOSITORY export SVCCFG_REPOSITORY
 	import_manifests "$ALT_MFST_DIR" false
 	unset SVCCFG_REPOSITORY
@@ -464,6 +464,10 @@ else
 
 	if [ -d "/opt/custom/smf" ]; then
 		import_manifests "/opt/custom/smf" true
+	fi
+
+	if [ -d "/system/boot/opt/custom/smf" ]; then
+		import_manifests "/system/boot/opt/custom/smf" true
 	fi
 
 	#
